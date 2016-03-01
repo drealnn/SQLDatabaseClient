@@ -10,6 +10,7 @@ import javafx.scene.control.*;
 
 import javax.swing.*;
 import java.net.URL;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,6 +34,9 @@ public class Controller implements Initializable {
     public Button connectBt;
     public Label connectionLabel;
 
+    public Connection connection;
+    public boolean connectedToDatabase = false;
+
     String database;
     String username;
     String password;
@@ -45,10 +49,9 @@ public class Controller implements Initializable {
         try
         {
             // create TableModel for results of query SELECT * FROM bikes
-            username = usernameBox.getText();
-            password = passwordBox.getText();
+
             query = queryText.getText();
-            tableModel = new ResultSetTableModel( driver, database,username, password, query );
+            tableModel = new ResultSetTableModel( connection, query, connectedToDatabase );
 
             // create JTable delegate for tableModel
             JTable resultTable = new JTable( tableModel );
@@ -112,23 +115,48 @@ public class Controller implements Initializable {
     }
 
     public void connectToDatabase(ActionEvent actionEvent) {
-        /*Class.forName( driver );
 
-        // connect to database
-        connection = DriverManager.getConnection(url, username, password);
+        try {
+            username = usernameBox.getText();
+            password = passwordBox.getText();
 
-        // create Statement to query database
-        statement = connection.createStatement(
-                ResultSet.TYPE_SCROLL_INSENSITIVE,
-                ResultSet.CONCUR_READ_ONLY );
+            Class.forName(driver);
 
-        // update database connection status
-        connectedToDatabase = true;*/
+            // connect to database
+            connection = DriverManager.getConnection(database, username, password);
+
+            connectionLabel.setText("Connected to " + database);
+
+            // update database connectio
+            // n status
+            connectedToDatabase = true;
+        }
+        catch ( ClassNotFoundException classNotFound )
+        {
+            JOptionPane.showMessageDialog( null,
+                    "MySQL driver not found", "Driver not found",
+                    JOptionPane.ERROR_MESSAGE );
+
+            connectedToDatabase = false;
+
+            System.exit( 1 ); // terminate application
+        } // end catch
+        catch (SQLException sqlException)
+        {
+            JOptionPane.showMessageDialog( null, sqlException.getMessage(),
+                    "Database error", JOptionPane.ERROR_MESSAGE );
+
+            // ensure database connection is closed
+            tableModel.disconnectFromDatabase();
+
+            connectedToDatabase = false;
+            System.exit( 1 );   // terminate application
+        }
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        databaseBox.setItems(FXCollections.observableArrayList(DATABASE_URL));
+        databaseBox.setItems(FXCollections.observableArrayList(DATABASE_URL, "jdbc:mysql://localhost:3306/project3"));
 
         databaseBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
             @Override

@@ -28,15 +28,10 @@ public class ResultSetTableModel extends AbstractTableModel
 
     // constructor initializes resultSet and obtains its meta data object;
     // determines number of rows
-    public ResultSetTableModel( String driver, String url,
-                                String username, String password, String query )
+    public ResultSetTableModel( Connection connection,  String query, boolean connectedToDatabase )
             throws SQLException, ClassNotFoundException
     {
-        // load database driver class
-        Class.forName( driver );
 
-        // connect to database
-        connection = DriverManager.getConnection( url, username, password );
 
         // create Statement to query database
         statement = connection.createStatement(
@@ -44,10 +39,12 @@ public class ResultSetTableModel extends AbstractTableModel
                 ResultSet.CONCUR_READ_ONLY );
 
         // update database connection status
-        connectedToDatabase = true;
 
         // set query and execute it
-        setQuery( query );
+        if (query.contains("Select"))
+            setQuery( query );
+        else
+            setUpdate(query);
 
         //set update and execute it
         //setUpdate (query);
