@@ -33,6 +33,7 @@ public class ResultSetTableModel extends AbstractTableModel
     {
 
 
+        this.connectedToDatabase = connectedToDatabase;
         // create Statement to query database
         statement = connection.createStatement(
                 ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -41,7 +42,7 @@ public class ResultSetTableModel extends AbstractTableModel
         // update database connection status
 
         // set query and execute it
-        if (query.contains("Select"))
+        if (query.contains("select") || query.contains("Select"))
             setQuery( query );
         else
             setUpdate(query);
@@ -110,7 +111,7 @@ public class ResultSetTableModel extends AbstractTableModel
             sqlException.printStackTrace();
         } // end catch
 
-        return "fgdfgdgf"; // if problems, return empty string for column name
+        return ""; // if problems, return empty string for column name
     } // end method getColumnName
 
     // return number of rows in ResultSet
